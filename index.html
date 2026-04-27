@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="apple-touch-icon" href="favicomatic/apple-touch-icon-152x152.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicomatic/favicon-32x32.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Gestor de Gastos S & E</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --color-ericson: #a2bff5; 
+            --color-sindy: #fce4ec;    
+            --text-dark: #334155;
+        }
+
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            background-color: var(--bg); 
+            color: var(--text);
+            margin: 0;
+            padding: 10px; /* Reducido para móvil */
+            display: flex;
+            justify-content: center;
+        }
+
+        .container { max-width: 850px; width: 100%; }
+
+        .card {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        /* Grillas responsivas */
+        .form-grid, .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+
+        input {
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            outline: none;
+            font-size: 16px; /* Evita zoom automático en iOS */
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-add { background: var(--primary); color: white; width: 100%; }
+        .btn-filter { background: #64748b; color: white; }
+        .btn-reset { background: #cbd5e1; color: var(--text-dark); }
+        .btn-delete { background: rgba(0,0,0,0.05); color: #64748b; padding: 8px 12px; border-radius: 6px; }
+
+        /* Estilos de Tabla y Responsive */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { background: #f1f5f9; padding: 12px; text-align: left; font-size: 0.75rem; text-transform: uppercase; }
+        td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 15px; }
+
+        .fila-ericson { background-color: var(--color-ericson) !important; color: var(--text-dark) !important; }
+        .fila-sindy { background-color: var(--color-sindy) !important; color: var(--text-dark) !important; }
+
+        .total-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1e293b;
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        /* --- MEDIA QUERY PARA MÓVILES --- */
+        @media screen and (max-width: 600px) {
+            /* Ocultar encabezados de tabla */
+            thead { display: none; }
+
+            tr {
+                display: block;
+                margin-bottom: 15px;
+                border: 1px solid #e2e8f0;
+                border-radius: 12px;
+                padding: 10px;
+                position: relative;
+            }
+
+            td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                text-align: right;
+                border-bottom: 1px dashed rgba(0,0,0,0.1);
+                padding: 8px 5px;
+            }
+
+            td:last-child { border-bottom: none; }
+
+            /* Agregar etiquetas a cada dato */
+            td::before {
+                content: attr(data-label);
+                font-weight: bold;
+                text-transform: uppercase;
+                font-size: 0.7rem;
+                float: left;
+                opacity: 0.7;
+            }
+
+            .total-section {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <h2 style="margin-top:0; color: var(--primary);">Registro de Gasto</h2>
+        <div class="form-grid">
+            <input type="text" id="establecimiento" placeholder="¿Dónde gastaste?">
+            <input type="number" id="precio" placeholder="Monto (Q)">
+            <input type="date" id="fecha">
+            <input type="text" id="nombre" placeholder="Nombre (Ericson / Sindy)">
+        </div>
+        <button class="btn btn-add" onclick="guardarGasto()">Agregar a la lista</button>
+    </div>
+
+    <div class="card">
+        <div class="filter-header">
+            <h3 style="margin:0; font-size: 1rem;">Filtrar Periodo</h3>
+            <button class="btn btn-reset" style="padding: 5px 10px; font-size: 0.7em;" onclick="limpiarFiltros()">Mostrar Todo</button>
+        </div>
+        <div class="filter-grid">
+            <input type="date" id="filtroDesde" title="Desde">
+            <input type="date" id="filtroHasta" title="Hasta">
+            <button class="btn btn-filter" onclick="cargarDatos()">Filtrar</button>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-top: 1px solid #f1f5f9; padding-top: 20px;">
+            <h2 style="margin:0; font-size: 1.2rem;">Historial</h2>
+            <button class="btn" onclick="vaciarBaseDatos()" style="background:#fff1f2; color:#be123c; font-size: 0.7em; padding: 8px 12px;">Borrar Todo</button>
+        </div>
+        
+        <table id="tablaCompleta">
+            <thead>
+                <tr>
+                    <th>Sel.</th>
+                    <th>Lugar</th>
+                    <th>Costo</th>
+                    <th>Fecha</th>
+                    <th>Responsable</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="tablaGastos"></tbody>
+        </table>
+
+        <div class="total-section">
+            <span>Suma seleccionados:</span>
+            <span style="font-size: 1.4em; font-weight: bold;">Q <span id="total">0.00</span></span>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', cargarDatos);
+
+    function guardarGasto() {
+        const est = document.getElementById('establecimiento');
+        const precio = document.getElementById('precio');
+        const fecha = document.getElementById('fecha');
+        const nombre = document.getElementById('nombre');
+
+        if(!est.value || !precio.value || !nombre.value) return;
+
+        const gasto = {
+            id: Date.now(),
+            est: est.value,
+            precio: parseFloat(precio.value),
+            fecha: fecha.value,
+            nombre: nombre.value.trim()
+        };
+        
+        let gastos = JSON.parse(localStorage.getItem('misGastos') || '[]');
+        gastos.push(gasto);
+        localStorage.setItem('misGastos', JSON.stringify(gastos));
+        
+        est.value = ""; precio.value = ""; nombre.value = "";
+        cargarDatos();
+    }
+
+    function cargarDatos() {
+        const gastos = JSON.parse(localStorage.getItem('misGastos') || '[]');
+        const tbody = document.getElementById('tablaGastos');
+        const fDesde = document.getElementById('filtroDesde').value;
+        const fHasta = document.getElementById('filtroHasta').value;
+        
+        tbody.innerHTML = '';
+        
+        const gastosFiltrados = gastos.filter(g => {
+            if (!fDesde || !fHasta) return true;
+            return g.fecha >= fDesde && g.fecha <= fHasta;
+        });
+
+        gastosFiltrados.forEach((g) => {
+            let claseFila = '';
+            const n = g.nombre.toLowerCase()
+                              .normalize("NFD")
+                              .replace(/[\u0300-\u036f]/g, ""); 
+            
+            if (n === 'ericson') claseFila = 'fila-ericson';
+            else if (n === 'sindy') claseFila = 'fila-sindy';
+
+            let fechaFormateada = g.fecha;
+            if (g.fecha) {
+                const partes = g.fecha.split('-');
+                fechaFormateada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+            }
+
+            tbody.innerHTML += `
+                <tr class="${claseFila}">
+                    <td data-label="Seleccionar" style="text-align:center"><input type="checkbox" class="checkGasto" value="${g.precio}" onchange="calcularTotal()" style="width:20px; height:20px;"></td>
+                    <td data-label="Lugar"><strong>${g.est}</strong></td>
+                    <td data-label="Costo">Q ${g.precio.toFixed(2)}</td>
+                    <td data-label="Fecha">${fechaFormateada}</td> 
+                    <td data-label="Quién">${g.nombre}</td>
+                    <td data-label="Acción"><button class="btn btn-delete" onclick="eliminarRegistro(${g.id})">✕</button></td>
+                </tr>`;
+        });
+        calcularTotal();
+    }
+
+    function limpiarFiltros() {
+        document.getElementById('filtroDesde').value = "";
+        document.getElementById('filtroHasta').value = "";
+        cargarDatos();
+    }
+
+    function eliminarRegistro(id) {
+        if(!confirm("¿Deseas quitar este registro?")) return;
+        let gastos = JSON.parse(localStorage.getItem('misGastos') || '[]');
+        gastos = gastos.filter(g => g.id !== id);
+        localStorage.setItem('misGastos', JSON.stringify(gastos));
+        cargarDatos();
+    }
+
+    function vaciarBaseDatos() {
+        if(!confirm("Se borrarán todos los datos locales. ¿Continuar?")) return;
+        localStorage.removeItem('misGastos');
+        cargarDatos();
+    }
+
+    function calcularTotal() {
+        let total = 0;
+        document.querySelectorAll('.checkGasto:checked').forEach(c => {
+            total += parseFloat(c.value);
+        });
+        document.getElementById('total').innerText = total.toFixed(2);
+    }
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js').catch(err => console.log('Error SW', err));
+        });
+    }
+</script>
+
+</body>
+</html>
