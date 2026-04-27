@@ -1,7 +1,7 @@
 const CACHE_NAME = 'gastos-se-v1';
 const ASSETS = [
   './',
-  './Gastos.html',
+  './index.html',
   './manifest.json',
   './favicomatic/favicon-196x196.png' // Ruta actualizada
 ];
