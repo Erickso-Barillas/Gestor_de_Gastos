@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="apple-touch-icon" href="favicomatic/apple-touch-icon-152x152.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicomatic/favicon-32x32.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Gestor de Gastos S & E</title>
+    <style>
+        :root {
+            --primary: #38bdf8; 
+            --bg: #0f172a;      
+            --card: #1e293b;    
+            --text: #f1f5f9;    
+            --text-dim: #94a3b8; 
+            
+            --color-ericson: #a2bff5; 
+            --color-sindy: #fce4ec;    
+            --text-dark: #1e293b;
+        }
+
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            background-color: var(--bg); 
+            color: var(--text);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container { max-width: 850px; width: 100%; }
+
+        .card {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .form-grid, .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        input {
+            padding: 12px;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            outline: none;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+            background: #0f172a;
+            color: white;
+        }
+
+        input::placeholder { color: #64748b; }
+
+        .btn {
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-add { 
+            background: var(--primary); 
+            color: var(--bg); 
+            width: 100%; 
+            box-shadow: 0 4px 14px 0 rgba(56, 189, 248, 0.3);
+        }
+        
+        .btn-filter { background: #334155; color: white; }
+        .btn-reset { background: transparent; color: var(--primary); border: 1px solid var(--primary); }
+        .btn-delete { background: rgba(0,0,0,0.2); color: #94a3b8; padding: 8px 12px; border-radius: 6px; }
+
+        /* --- NUEVO: Selectores de Usuario Estilo Pestaña --- */
+        .user-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 5px;
+            border-radius: 10px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-dim);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .tab-btn.active[data-user="todos"] { background: #334155; color: white; }
+        .tab-btn.active[data-user="ericson"] { background: #2563eb; color: white; }
+        .tab-btn.active[data-user="sindy"] { background: #db2777; color: white; }
+        .tab-btn.active[data-user="indefinido"] { background: #475569; color: white; }
+
+        /* Tabla */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { background: rgba(0,0,0,0.2); padding: 12px; text-align: left; font-size: 0.75rem; text-transform: uppercase; color: var(--text-dim); }
+        td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 15px; }
+
+        .fila-ericson { 
+            background: linear-gradient(90deg, rgba(56, 189, 248, 0.15) 0%, rgba(56, 189, 248, 0.05) 100%) !important; 
+            color: #7dd3fc !important; 
+            border-left: 4px solid #38bdf8; 
+        }
+        .fila-sindy { 
+            background: linear-gradient(90deg, rgba(244, 114, 182, 0.15) 0%, rgba(244, 114, 182, 0.05) 100%) !important; 
+            color: #f9a8d4 !important; 
+            border-left: 4px solid #f472b6; 
+        }
+        .fila-ericson strong, .fila-sindy strong { color: inherit; }
+
+        tr:hover {
+            filter: brightness(1.2);
+            transition: 0.2s;
+        }
+
+        .total-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--primary);
+            color: var(--bg);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        @media screen and (max-width: 600px) {
+            thead { display: none; }
+            tr {
+                display: block;
+                margin-bottom: 15px;
+                border: 1px solid rgba(255,255,255,0.1);
+                border-radius: 12px;
+                padding: 10px;
+                position: relative;
+                background: rgba(255,255,255,0.02);
+            }
+            td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                text-align: right;
+                border-bottom: 1px dashed rgba(255,255,255,0.1);
+                padding: 8px 5px;
+            }
+            td:last-child { border-bottom: none; }
+            td::before {
+                content: attr(data-label);
+                font-weight: bold;
+                text-transform: uppercase;
+                font-size: 0.7rem;
+                float: left;
+                color: var(--text-dim);
+            }
+            .total-section { flex-direction: column; gap: 10px; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <h2 style="margin-top:0; color: var(--primary);">Registro de Gasto</h2>
+        <div class="form-grid">
+            <input type="text" id="establecimiento" placeholder="¿Dónde gastaste?">
+            <input type="number" id="precio" placeholder="Monto (Q)">
+            <input type="date" id="fecha">
+            <input type="text" id="nombre" placeholder="Nombre (Ericson / Sindy)">
+        </div>
+        <button class="btn btn-add" onclick="guardarGasto()">Agregar a la lista</button>
+    </div>
+
+    <div class="card">
+        <div class="filter-header">
+            <h3 style="margin:0; font-size: 1rem;">Filtrar Periodo</h3>
+            <button class="btn btn-reset" style="padding: 5px 10px; font-size: 0.7em;" onclick="limpiarFiltros()">Mostrar Todo</button>
+        </div>
+        <div class="filter-grid">
+            <input type="date" id="filtroDesde" title="Desde">
+            <input type="date" id="filtroHasta" title="Hasta">
+            <button class="btn btn-filter" onclick="cargarDatos()">Filtrar</button>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+            <h2 style="margin:0; font-size: 1.2rem;">Historial</h2>
+            <button class="btn" onclick="vaciarBaseDatos()" style="background:#451a1a; color:#f87171; font-size: 0.7em; padding: 8px 12px;">Borrar Todo</button>
+        </div>
+
+        <div class="user-tabs">
+            <button class="tab-btn active" data-user="todos" onclick="cambiarFiltroUsuario('todos')">Todos</button>
+            <button class="tab-btn" data-user="ericson" onclick="cambiarFiltroUsuario('ericson')">Ericson</button>
+            <button class="tab-btn" data-user="sindy" onclick="cambiarFiltroUsuario('sindy')">Sindy</button>
+            <button class="tab-btn" data-user="indefinido" onclick="cambiarFiltroUsuario('indefinido')">Indefinido</button>
+        </div>
+        
+        <table id="tablaCompleta">
+            <thead>
+                <tr>
+                    <th>Sel.</th>
+                    <th>Lugar</th>
+                    <th>Costo</th>
+                    <th>Fecha</th>
+                    <th>Responsable</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="tablaGastos"></tbody>
+        </table>
+
+        <div class="total-section">
+            <span style="font-weight: bold;">Suma seleccionados:</span>
+            <span style="font-size: 1.4em; font-weight: bold;">Q <span id="total">0.00</span></span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Variable global para controlar qué usuario está seleccionado en la pestaña
+    let usuarioSeleccionado = 'todos';
+
+    document.addEventListener('DOMContentLoaded', cargarDatos);
+
+    // Función auxiliar para normalizar nombres y textos (evita fallos por tildes o mayúsculas)
+    function limpiarTexto(texto) {
+        return texto.toLowerCase()
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .trim();
+    }
+
+    function guardarGasto() {
+        const est = document.getElementById('establecimiento');
+        const precio = document.getElementById('precio');
+        const fecha = document.getElementById('fecha');
+        const nombre = document.getElementById('nombre');
+
+        if(!est.value || !precio.value || !nombre.value) return;
+
+        let gastos = JSON.parse(localStorage.getItem('misGastos') || '[]');
+
+        // --- CAMBIO 2: VALIDACIÓN DE DUPLICADOS ---
+        const esDuplicado = gastos.some(g => 
+            limpiarTexto(g.est) === limpiarTexto(est.value) &&
+            g.precio === parseFloat(precio.value) &&
+            g.fecha === fecha.value &&
+            limpiarTexto(g.nombre) === limpiarTexto(nombre.value)
+        );
+
+        if (esDuplicado) {
+            alert("⚠️ Error: Este registro ya existe (Mismo lugar, monto, fecha y responsable).");
+            return; // Bloquea el guardado
+        }
+
+        const gasto = {
+            id: Date.now(),
+            est: est.value,
+            precio: parseFloat(precio.value),
+            fecha: fecha.value,
+            nombre: nombre.value.trim()
+        };
+        
+        gastos.push(gasto);
+        localStorage.setItem('misGastos', JSON.stringify(gastos));
+        
+        est.value = ""; precio.value = ""; nombre.value = "";
+        cargarDatos();
+    }
+
+    // --- CAMBIO 1: FUNCIÓN PARA INTERCAMBIAR PESTAÑAS ---
+    function cambiarFiltroUsuario(usuario) {
+        usuarioSeleccionado = usuario;
+        
+        // Cambiar la clase activa visualmente en los botones
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelector(`.tab-btn[data-user="${usuario}"]`).classList.add('active');
+        
+        cargarDatos(); // Recargar la tabla con el nuevo filtro aplicado
+    }
+
+    function cargarDatos() {
+        const gastos = JSON.parse(localStorage.getItem('misGastos') || '[]');
+        const tbody = document.getElementById('tablaGastos');
+        const fDesde = document.getElementById('filtroDesde').value;
+        const fHasta = document.getElementById('filtroHasta').value;
+        
+        tbody.innerHTML = '';
+        
+        // 1. Filtrado por rango de fechas original
+        let gastosProcesados = gastos.filter(g => {
+            if (!fDesde || !fHasta) return true;
+            return g.fecha >= fDesde && g.fecha <= fHasta;
+        });
+
+        // 2. NUEVO FILTRADO: Por el usuario seleccionado en las pestañas
+        gastosProcesados = gastosProcesados.filter(g => {
+            if (usuarioSeleccionado === 'todos') return true;
+            
+            const n = limpiarTexto(g.nombre);
+            if (usuarioSeleccionado === 'ericson') return n === 'ericson';
+            if (usuarioSeleccionado === 'sindy') return n === 'sindy';
+            
+            // Si eligió indefinido, muestra todo lo que no sea ni ericson ni sindy
+            if (usuarioSeleccionado === 'indefinido') return n !== 'ericson' && n !== 'sindy';
+        });
+
+        // 3. Ordenar por fecha (Más reciente primero)
+        gastosProcesados.sort((a, b) => {
+            if (a.fecha < b.fecha) return 1;
+            if (a.fecha > b.fecha) return -1;
+            return 0;
+        });
+
+        // 4. Renderizar registros filtrados
+        gastosProcesados.forEach((g) => {
+            let claseFila = '';
+            const n = limpiarTexto(g.nombre);
+            
+            if (n === 'ericson') claseFila = 'fila-ericson';
+            else if (n === 'sindy') claseFila = 'fila-sindy';
+
+            let fechaFormateada = g.fecha;
+            if (g.fecha) {
+                const partes = g.fecha.split('-');
+                fechaFormateada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+            }
+
+            tbody.innerHTML += `
+                <tr class="${claseFila}">
+                    <td data-label="Seleccionar" style="text-align:center"><input type="checkbox" class="checkGasto" value="${g.precio}" onchange="calcularTotal()" style="width:20px; height:20px;"></td>
+                    <td data-label="Lugar"><strong>${g.est}</strong></td>
+                    <td data-label="Costo">Q ${g.precio.toFixed(2)}</td>
+                    <td data-label="Fecha">${fechaFormateada}</td> 
+                    <td data-label="Quién">${g.nombre}</td>
+                    <td data-label="Acción"><button class="btn btn-delete" onclick="eliminarRegistro(${g.id})">✕</button></td>
+                </tr>`;
+        });
+        calcularTotal();
+    }
+
+    function limpiarFiltros() {
+        document.getElementById('filtroDesde').value = "";
+        document.getElementById('filtroHasta').value = "";
+        cambiarFiltroUsuario('todos'); // Resetea también la pestaña a 'Todos'
+    }
+
+    function eliminarRegistro(id) {
+        if(!confirm("¿Deseas quitar este registro?")) return;
+        let gastos = JSON.parse(localStorage.getItem('misGastos') || '[]');
+        gastos = gastos.filter(g => g.id !== id);
+        localStorage.setItem('misGastos', JSON.stringify(gastos));
+        cargarDatos();
+    }
+
+    function vaciarBaseDatos() {
+        if(!confirm("Se borrarán todos los datos locales. ¿Continuar?")) return;
+        localStorage.removeItem('misGastos');
+        cargarDatos();
+    }
+
+    function calcularTotal() {
+        let total = 0;
+        document.querySelectorAll('.checkGasto:checked').forEach(c => {
+            total += parseFloat(c.value);
+        });
+        document.getElementById('total').innerText = total.toFixed(2);
+    }
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js').catch(err => console.log('Error SW', err));
+        });
+    }
+</script>
+
+</body>
+</html>
