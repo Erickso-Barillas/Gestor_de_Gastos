@@ -1,9 +1,11 @@
-const CACHE_NAME = 'gastos-se-v1';
+const CACHE_NAME = 'gastos-se-v2'; // Subimos la versión para forzar la actualización
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './favicomatic/favicon-196x196.png' // Ruta actualizada
+  './favicomatic/favicon-192x192.png',
+  './favicomatic/favicon-180x180.png',
+  './favicomatic/mstile-310x310.png'
 ];
 
 // Instalación: Guarda los archivos en caché

@@ -1,7 +1,7 @@
 {
   "name": "Gestor de Gastos S & E",
   "short_name": "Gastos S&E",
-  "start_url": "./Gastos.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0f172a",
